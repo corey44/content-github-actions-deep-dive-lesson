@@ -1,0 +1,35 @@
+name: Deploy
+
+# set workflow triggers
+on: 
+  push:
+    branches:
+      - main
+  # Allows use to trigger from actions page on gh
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code checkout
+        uses: actions/checkout@v2
+      - name: Install python 
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Intall libraries
+        run: |
+            cd function
+            python -m pip install --upgrade pip
+            if [ -f requirements.txt ]; then pip install -f requirements.txt -t .; fi
+      - name: Create zip
+        run: |
+            cd function
+            # . = zip everything in current directory
+            zip -r ../${{ github.sha }}.zip .
+      - name: Create artifact archive
+        uses: actions/upload-artifact@v2
+        with:
+          name: zipped-bundle
+          path: ${{ github.sha }}.zip
